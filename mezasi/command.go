@@ -90,7 +90,7 @@ var sshCmd = &commander.Command{
 
 var portMapCmd = &commander.Command{
 	Run:       runPostPortMapCmd,
-	UsageLine: "port_map <name> [port]",
+	UsageLine: "port_map <name> <port>",
 }
 
 func runListCmd(cmd *commander.Command, args []string) error {
@@ -318,27 +318,21 @@ func runPostPortMapCmd(cmd *commander.Command, args []string) error {
 	}
 	cmdName := cmd.Name()
 	pathStr := cmdName + "/" + args[0]
-	switch len(args) {
-	case 2:
-		var b bytes.Buffer
-		w := multipart.NewWriter(&b)
-		if err := w.WriteField("port", args[1]); err != nil {
-			return err
-		}
-		if err := w.Close(); err != nil {
-			return err
-		}
-		req, err := client.NewRequest("POST", pathStr, &b)
-		if err != nil {
-			return err
-		}
-		req.Header.Set("Content-Type", w.FormDataContentType())
-
-		if _, err := pp(client.Do(req)); err != nil {
-			return err
-		}
-	default:
-		return errors.New("invalid arguments")
+	var b bytes.Buffer
+	w := multipart.NewWriter(&b)
+	if err := w.WriteField("port", args[1]); err != nil {
+		return err
+	}
+	if err := w.Close(); err != nil {
+		return err
+	}
+	req, err := client.NewRequest("POST", pathStr, &b)
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", w.FormDataContentType())
+	if _, err := pp(client.Do(req)); err != nil {
+		return err
 	}
 	return nil
 }
