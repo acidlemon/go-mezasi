@@ -88,6 +88,11 @@ var sshCmd = &commander.Command{
 	UsageLine: "ssh <name> ...",
 }
 
+var portMapCmd = &commander.Command{
+	Run:       runPostPortMapCmd,
+	UsageLine: "port_map <name> [port]",
+}
+
 func runListCmd(cmd *commander.Command, args []string) error {
 	if err := validateCmdArgs(cmd, args); err != nil {
 		return err
@@ -305,6 +310,37 @@ func runSshCmd(cmd *commander.Command, args []string) error {
 	execCmd.Stderr = os.Stderr
 
 	return execCmd.Run()
+}
+
+func runPostPortMapCmd(cmd *commander.Command, args []string) error {
+	if err := validateCmdArgs(cmd, args); err != nil {
+		return err
+	}
+	cmdName := cmd.Name()
+	pathStr := cmdName + "/" + args[0]
+	switch len(args) {
+	case 2:
+		var b bytes.Buffer
+		w := multipart.NewWriter(&b)
+		if err := w.WriteField("port", args[1]); err != nil {
+			return err
+		}
+		if err := w.Close(); err != nil {
+			return err
+		}
+		req, err := client.NewRequest("POST", pathStr, &b)
+		if err != nil {
+			return err
+		}
+		req.Header.Set("Content-Type", w.FormDataContentType())
+
+		if _, err := pp(client.Do(req)); err != nil {
+			return err
+		}
+	default:
+		return errors.New("invalid arguments")
+	}
+	return nil
 }
 
 func validateCmdArgs(cmd *commander.Command, args []string) error {
