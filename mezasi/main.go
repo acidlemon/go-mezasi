@@ -28,6 +28,7 @@ func init() {
 		publicKeyCmd,
 		userDataCmd,
 		sshCmd,
+		portMapCmd,
 	}
 }
 
