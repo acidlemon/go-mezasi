@@ -29,6 +29,7 @@ func makeRegisterCmd() *commander.Command {
 	registerCmd.Flag.String("base", "", "base image (*)")
 	registerCmd.Flag.String("public-key", "", "path to ssh public key file (for root@vm)")
 	registerCmd.Flag.String("user-data", "", "path to shell script executed on boot up")
+	registerCmd.Flag.String("host", "", "vm host (not specified, random choices)")
 	registerCmd.Flag.Bool("wait", false, "wait for vm boot up")
 	return registerCmd
 }
@@ -180,6 +181,7 @@ func runRegisterCmd(cmd *commander.Command, args []string) error {
 	}
 	name := cmd.Flag.Lookup("name").Value.Get().(string)
 	base := cmd.Flag.Lookup("base").Value.Get().(string)
+	host := cmd.Flag.Lookup("host").Value.Get().(string)
 	if name == "" || base == "" {
 		return errors.New("Usage: " + cmd.UsageLine)
 	}
@@ -190,6 +192,9 @@ func runRegisterCmd(cmd *commander.Command, args []string) error {
 		return err
 	}
 	if err := w.WriteField("base", base); err != nil {
+		return err
+	}
+	if err := w.WriteField("host", host); err != nil {
 		return err
 	}
 
